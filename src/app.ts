@@ -68,6 +68,7 @@ function parsePartGroups(input: string): Array<PartGroup> {
         const connectionAndNumberString = value.match(/([ spc]]*)?(\d+)/);
 
         if (connectionAndNumberString) {
+            // TODO big numbers (> 50k) kill the performance
             const parsedNumber = parseInt(connectionAndNumberString[2], 10);
             const continuation = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('p') !== -1 : false;
             const newRow = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('c') !== -1 : false;
@@ -120,7 +121,7 @@ function createAmountParts(partGroups: Array<PartGroup>, canvasHeight: number): 
                                     colors[colorIndex][2] + ')',
                     x: countOnRow * (partSize + partMargin),
                     y: row * (partSize + partMargin),
-                    currentY: canvasHeight + countOnRow * 10 + row * (partSize + partMargin)
+                    currentY: canvasHeight + (countOnRow * row + countOnRow) * 10 + row * (partSize + partMargin)
                 };
                 result.push(amountPart);
                 countOnRow += 1;

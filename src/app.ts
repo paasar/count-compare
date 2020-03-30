@@ -9,6 +9,9 @@ let ctx: CanvasRenderingContext2D;
 
 let amountParts: Array<AmountPart> = []
 
+const partSize = 10;
+const partMargin = 2;
+
 // TODO nice colors
 const colors = [[255, 0, 0],
                 [0, 255, 0],
@@ -25,7 +28,7 @@ function draw() {
     if (ctx) {
         // clean previous frame renders
         amountParts.forEach((part) => {
-            ctx.clearRect(part.x, part.currentY, 5, 5);
+            ctx.clearRect(part.x, part.currentY, partSize, partSize);
         });
 
         // update state
@@ -37,10 +40,10 @@ function draw() {
 
         // render
         amountParts.forEach((part) => {
-            ctx.clearRect(part.x, part.currentY, 5, 5);
+            ctx.clearRect(part.x, part.currentY, partSize, partSize);
 
             ctx.fillStyle = part.color;
-            ctx.fillRect(part.x, part.currentY, 5, 5);
+            ctx.fillRect(part.x, part.currentY, partSize, partSize);
         });
 
         // remove those in place
@@ -72,7 +75,7 @@ function createAmountParts(amounts: Array<number>, canvasHeight: number): Array<
                 color: 'rgb(' + colors[colorIndex][0] + ', ' +
                                 colors[colorIndex][1] + ', ' +
                                 colors[colorIndex][2] + ')',
-                x: count * 6,
+                x: count * (partSize + partMargin),
                 y: 0,
                 currentY: canvasHeight + count * 10
             };
@@ -96,11 +99,12 @@ function start() {
         // TODO add only if doesn't exists
         input.addEventListener('input', (ev) => {
             const target = <HTMLInputElement>ev.target
+            // TODO update only changed parts when formula changes
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            amountParts = createAmountParts(target.value.trim().split(' ').map(x => parseInt(x)), height);
+            amountParts = createAmountParts(target.value.trim().split(' ').map(x => parseInt(x, 10)), height);
         });
 
-        const amounts = input.value.split(' ').map(x => parseInt(x));
+        const amounts = input.value.split(' ').map(x => parseInt(x, 10));
 
         amountParts = createAmountParts(amounts, height);
 

@@ -1,3 +1,10 @@
+interface PartGroup {
+    count: number,
+    continuation: boolean,
+    square: boolean,
+    newRow: boolean
+}
+
 interface AmountPart {
     color: string,
     x: number,
@@ -53,35 +60,66 @@ function draw() {
     }
 }
 
-function createAmountParts(amounts: Array<number>, canvasHeight: number): Array<AmountPart> {
+function parsePartGroups(input: string): Array<PartGroup> {
+    let result: Array<PartGroup> = [];
+    const regexSections = /(([ spc]+)?(\d+))+?/g
+    const splittedString = input.match(regexSections)
+    splittedString?.forEach((value) => {
+        const connectionAndNumberString = value.match(/([ spc]]*)?(\d+)/);
+
+        if (connectionAndNumberString) {
+            const parsedNumber = parseInt(connectionAndNumberString[2], 10);
+            const continuation = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('p') !== -1 : false;
+
+            result.push({
+                count: parsedNumber,
+                continuation,
+                square: false,
+                newRow: false
+            });
+        } else {
+            console.log('Invalid input: ' + value);
+        }
+    });
+
+    return result;
+}
+
+function createAmountParts(partGroups: Array<PartGroup>, canvasHeight: number): Array<AmountPart> {
     let result: Array<AmountPart> = [];
 
     // 1 2 3 = 1 2 2 3 3 3
-    // TODO other syntax
     // 1p2p3 = 1 2 3
+    // TODO other syntax
+    // 3c4   = 3 3 3
+    //         4 4 4 4
     // 3s    = 3 3
     //         3
     // 3sp9  = 3 3 9
     //         3 9 9
     //         9 9 9
-    // 3c4   = 3 3 3
-    //         4 4 4 4
     let count = 0;
+    let includedInContinuation = 0;
     const maxColorIndex = colors.length - 1;
-    amounts.forEach((value, index) => {
-        new Array<number>(value).fill(0).forEach(() => {
-            const colorIndex = index % maxColorIndex;
-            const amountPart = {
-                color: 'rgb(' + colors[colorIndex][0] + ', ' +
-                                colors[colorIndex][1] + ', ' +
-                                colors[colorIndex][2] + ')',
-                x: count * (partSize + partMargin),
-                y: 0,
-                currentY: canvasHeight + count * 10
-            };
-            result.push(amountPart);
-            count += 1;
-        });
+    partGroups.forEach((partGroup, index) => {
+        if (!partGroup.continuation || partGroup.newRow) includedInContinuation = 0
+        const parts = partGroup.continuation ? partGroup.count - includedInContinuation : partGroup.count;
+        if (parts > 0) {
+            new Array<number>(parts).fill(0).forEach(() => {
+                const colorIndex = index % maxColorIndex;
+                const amountPart = {
+                    color: 'rgb(' + colors[colorIndex][0] + ', ' +
+                                    colors[colorIndex][1] + ', ' +
+                                    colors[colorIndex][2] + ')',
+                    x: count * (partSize + partMargin),
+                    y: 0,
+                    currentY: canvasHeight + count * 10
+                };
+                result.push(amountPart);
+                count += 1;
+                includedInContinuation += 1;
+            });
+        }
     });
     return result;
 }
@@ -92,21 +130,20 @@ function start() {
         ctx = <CanvasRenderingContext2D>canvas.getContext('2d');
 
         const input = <HTMLInputElement>document.getElementById('formula');
-        if (input) input.value = '3 6 38 10';
+        if (input) input.value = '3p6p10 5';
 
         const height = canvas.height;
 
-        // TODO add only if doesn't exists
+        // TODO add only if listener doesn't already exists
         input.addEventListener('input', (ev) => {
             const target = <HTMLInputElement>ev.target
-            // TODO update only changed parts when formula changes
+            // TODO update only changed partGroups when formula changes
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            amountParts = createAmountParts(target.value.trim().split(' ').map(x => parseInt(x, 10)), height);
+
+            amountParts = createAmountParts(parsePartGroups(target.value), height);
         });
 
-        const amounts = input.value.split(' ').map(x => parseInt(x, 10));
-
-        amountParts = createAmountParts(amounts, height);
+        amountParts = createAmountParts(parsePartGroups(input.value), height);
 
         window.requestAnimationFrame(draw);
     } else {

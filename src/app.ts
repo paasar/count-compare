@@ -70,12 +70,13 @@ function parsePartGroups(input: string): Array<PartGroup> {
         if (connectionAndNumberString) {
             const parsedNumber = parseInt(connectionAndNumberString[2], 10);
             const continuation = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('p') !== -1 : false;
+            const newRow = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('c') !== -1 : false;
 
             result.push({
                 count: parsedNumber,
                 continuation,
                 square: false,
-                newRow: false
+                newRow
             });
         } else {
             console.log('Invalid input: ' + value);
@@ -98,11 +99,17 @@ function createAmountParts(partGroups: Array<PartGroup>, canvasHeight: number): 
     // 3sp9  = 3 3 9
     //         3 9 9
     //         9 9 9
-    let count = 0;
+    let countOnRow = 0;
+    let row = 0;
     let includedInContinuation = 0;
     const maxColorIndex = colors.length - 1;
     partGroups.forEach((partGroup, index) => {
         if (!partGroup.continuation || partGroup.newRow) includedInContinuation = 0
+        if (partGroup.newRow) {
+            row += 1;
+            countOnRow = 0;
+        }
+
         const parts = partGroup.continuation ? partGroup.count - includedInContinuation : partGroup.count;
         if (parts > 0) {
             new Array<number>(parts).fill(0).forEach(() => {
@@ -111,12 +118,12 @@ function createAmountParts(partGroups: Array<PartGroup>, canvasHeight: number): 
                     color: 'rgb(' + colors[colorIndex][0] + ', ' +
                                     colors[colorIndex][1] + ', ' +
                                     colors[colorIndex][2] + ')',
-                    x: count * (partSize + partMargin),
-                    y: 0,
-                    currentY: canvasHeight + count * 10
+                    x: countOnRow * (partSize + partMargin),
+                    y: row * (partSize + partMargin),
+                    currentY: canvasHeight + countOnRow * 10 + row * (partSize + partMargin)
                 };
                 result.push(amountPart);
-                count += 1;
+                countOnRow += 1;
                 includedInContinuation += 1;
             });
         }
@@ -130,7 +137,7 @@ function start() {
         ctx = <CanvasRenderingContext2D>canvas.getContext('2d');
 
         const input = <HTMLInputElement>document.getElementById('formula');
-        if (input) input.value = '3p6p10 5';
+        if (input) input.value = '3p6p10 5c3c6c10 5';
 
         const height = canvas.height;
 

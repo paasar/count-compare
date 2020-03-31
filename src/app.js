@@ -124,8 +124,10 @@ function start() {
     if (canvas) {
         ctx = canvas.getContext('2d');
         var input = document.getElementById('formula');
+        var url = new URL(window.location.href);
+        var c = url.searchParams.get("formula");
         if (input)
-            input.value = '3p6p10c3 6cs3cs25';
+            input.value = c || '3p6p10c3 6cs3cs25';
         width = canvas.width;
         height = canvas.height;
         // TODO add only if listener doesn't already exists

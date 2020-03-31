@@ -161,7 +161,9 @@ function start() {
         ctx = <CanvasRenderingContext2D>canvas.getContext('2d');
 
         const input = <HTMLInputElement>document.getElementById('formula');
-        if (input) input.value = '3p6p10c3 6cs3cs25';
+        const url = new URL(window.location.href);
+        const c = url.searchParams.get("formula");
+        if (input) input.value = c || '3p6p10c3 6cs3cs25';
 
         width = canvas.width;
         height = canvas.height;

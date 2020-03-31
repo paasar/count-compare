@@ -41,10 +41,10 @@ function draw() {
 }
 function parsePartGroups(input) {
     var result = [];
-    var regexSections = /(([ spc]+)?(\d+))+?/g;
+    var regexSections = /(([ spc]+)*(\d+))+?/g;
     var splittedString = input.match(regexSections);
     splittedString === null || splittedString === void 0 ? void 0 : splittedString.forEach(function (value) {
-        var connectionAndNumberString = value.match(/([ spc]]*)?(\d+)/);
+        var connectionAndNumberString = value.match(/([ spc]*)?(\d+)/);
         if (connectionAndNumberString) {
             var parsedNumber = parseInt(connectionAndNumberString[2], 10);
             if (parsedNumber > 1024) {
@@ -52,11 +52,12 @@ function parsePartGroups(input) {
                 document.getElementById('cap-warning').setAttribute('style', 'display: block;');
             }
             var continuation = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('p') !== -1 : false;
+            var square = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('s') !== -1 : false;
             var newRow = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('c') !== -1 : false;
             result.push({
                 count: parsedNumber,
                 continuation: continuation,
-                square: false,
+                square: square,
                 newRow: newRow
             });
         }
@@ -68,16 +69,16 @@ function parsePartGroups(input) {
 }
 function createAmountParts(partGroups, canvasHeight) {
     var result = [];
-    // 1 2 3 = 1 2 2 3 3 3
-    // 1p2p3 = 1 2 3
+    // 1 2 3  = 1 2 2 3 3 3
+    // 1p2p3  = 1 2 3
+    // 3c4    = 3 3 3
+    //          4 4 4 4
+    // s3     = 3 3
+    //          3
     // TODO other syntax
-    // 3c4   = 3 3 3
-    //         4 4 4 4
-    // 3s    = 3 3
-    //         3
-    // 3sp9  = 3 3 9
-    //         3 9 9
-    //         9 9 9
+    // s3ps9  = 3 3 9
+    //          3 9 9
+    //          9 9 9
     var countOnRow = 0;
     var row = 0;
     var includedInContinuation = 0;
@@ -91,8 +92,17 @@ function createAmountParts(partGroups, canvasHeight) {
         }
         var parts = partGroup.continuation ? partGroup.count - includedInContinuation : partGroup.count;
         if (parts > 0) {
-            new Array(parts).fill(0).forEach(function () {
+            var startColumn_1 = countOnRow;
+            var squareStarted_1 = false;
+            new Array(parts).fill(0).forEach(function (_, partIndex) {
                 var colorIndex = index % maxColorIndex;
+                if (partGroup.square && partIndex % Math.ceil(Math.sqrt(parts)) === 0) {
+                    if (squareStarted_1) {
+                        row += 1;
+                    }
+                    squareStarted_1 = true;
+                    countOnRow = startColumn_1;
+                }
                 var amountPart = {
                     color: 'rgb(' + colors[colorIndex][0] + ', ' +
                         colors[colorIndex][1] + ', ' +
@@ -115,7 +125,7 @@ function start() {
         ctx = canvas.getContext('2d');
         var input = document.getElementById('formula');
         if (input)
-            input.value = '3p6p10 5c3c6c10 5';
+            input.value = '3p6p10c3 6cs3cs25';
         width = canvas.width;
         height = canvas.height;
         // TODO add only if listener doesn't already exists

@@ -68,10 +68,10 @@ function draw() {
 
 function parsePartGroups(input: string): Array<PartGroup> {
     let result: Array<PartGroup> = [];
-    const regexSections = /(([ spc]+)?(\d+))+?/g
+    const regexSections = /(([ spc]+)*(\d+))+?/g
     const splittedString = input.match(regexSections)
     splittedString?.forEach((value) => {
-        const connectionAndNumberString = value.match(/([ spc]]*)?(\d+)/);
+        const connectionAndNumberString = value.match(/([ spc]*)?(\d+)/);
 
         if (connectionAndNumberString) {
             let parsedNumber = parseInt(connectionAndNumberString[2], 10);
@@ -80,12 +80,13 @@ function parsePartGroups(input: string): Array<PartGroup> {
                 document.getElementById('cap-warning')!.setAttribute('style', 'display: block;');
             }
             const continuation = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('p') !== -1 : false;
+            const square = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('s') !== -1 : false;
             const newRow = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('c') !== -1 : false;
 
             result.push({
                 count: parsedNumber,
                 continuation,
-                square: false,
+                square,
                 newRow
             });
         } else {
@@ -99,16 +100,16 @@ function parsePartGroups(input: string): Array<PartGroup> {
 function createAmountParts(partGroups: Array<PartGroup>, canvasHeight: number): Array<AmountPart> {
     let result: Array<AmountPart> = [];
 
-    // 1 2 3 = 1 2 2 3 3 3
-    // 1p2p3 = 1 2 3
+    // 1 2 3  = 1 2 2 3 3 3
+    // 1p2p3  = 1 2 3
+    // 3c4    = 3 3 3
+    //          4 4 4 4
+    // s3     = 3 3
+    //          3
     // TODO other syntax
-    // 3c4   = 3 3 3
-    //         4 4 4 4
-    // 3s    = 3 3
-    //         3
-    // 3sp9  = 3 3 9
-    //         3 9 9
-    //         9 9 9
+    // s3ps9  = 3 3 9
+    //          3 9 9
+    //          9 9 9
     let countOnRow = 0;
     let row = 0;
     let includedInContinuation = 0;
@@ -122,8 +123,21 @@ function createAmountParts(partGroups: Array<PartGroup>, canvasHeight: number): 
 
         const parts = partGroup.continuation ? partGroup.count - includedInContinuation : partGroup.count;
         if (parts > 0) {
-            new Array<number>(parts).fill(0).forEach(() => {
+            const startColumn = countOnRow;
+            let squareStarted = false;
+
+            new Array<number>(parts).fill(0).forEach((_, partIndex) => {
                 const colorIndex = index % maxColorIndex;
+
+                if (partGroup.square && partIndex % Math.ceil(Math.sqrt(parts)) === 0) {
+                    if (squareStarted) {
+                        row += 1;
+                    }
+                    squareStarted = true;
+
+                    countOnRow = startColumn;
+                }
+
                 const amountPart = {
                     color: 'rgb(' + colors[colorIndex][0] + ', ' +
                                     colors[colorIndex][1] + ', ' +
@@ -147,7 +161,7 @@ function start() {
         ctx = <CanvasRenderingContext2D>canvas.getContext('2d');
 
         const input = <HTMLInputElement>document.getElementById('formula');
-        if (input) input.value = '3p6p10 5c3c6c10 5';
+        if (input) input.value = '3p6p10c3 6cs3cs25';
 
         width = canvas.width;
         height = canvas.height;

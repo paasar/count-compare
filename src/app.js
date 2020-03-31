@@ -3,6 +3,8 @@ var ctx;
 var amountParts = [];
 var partSize = 10;
 var partMargin = 2;
+var width;
+var height;
 // TODO nice colors
 var colors = [[255, 0, 0],
     [0, 255, 0],
@@ -25,9 +27,12 @@ function draw() {
         });
         // render
         amountParts.forEach(function (part) {
-            ctx.clearRect(part.x, part.currentY, partSize, partSize);
-            ctx.fillStyle = part.color;
-            ctx.fillRect(part.x, part.currentY, partSize, partSize);
+            if (part.x >= 0 && part.x < width &&
+                part.currentY >= 0 && part.currentY < height) {
+                ctx.clearRect(part.x, part.currentY, partSize, partSize);
+                ctx.fillStyle = part.color;
+                ctx.fillRect(part.x, part.currentY, partSize, partSize);
+            }
         });
         // remove those in place
         amountParts = amountParts.filter(function (part) { return part.y !== part.currentY; });
@@ -41,8 +46,11 @@ function parsePartGroups(input) {
     splittedString === null || splittedString === void 0 ? void 0 : splittedString.forEach(function (value) {
         var connectionAndNumberString = value.match(/([ spc]]*)?(\d+)/);
         if (connectionAndNumberString) {
-            // TODO big numbers (> 50k) kill the performance
             var parsedNumber = parseInt(connectionAndNumberString[2], 10);
+            if (parsedNumber > 1024) {
+                parsedNumber = 1024;
+                document.getElementById('cap-warning').setAttribute('style', 'display: block;');
+            }
             var continuation = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('p') !== -1 : false;
             var newRow = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('c') !== -1 : false;
             result.push({
@@ -108,15 +116,16 @@ function start() {
         var input = document.getElementById('formula');
         if (input)
             input.value = '3p6p10 5c3c6c10 5';
-        var height_1 = canvas.height;
+        width = canvas.width;
+        height = canvas.height;
         // TODO add only if listener doesn't already exists
         input.addEventListener('input', function (ev) {
             var target = ev.target;
             // TODO update only changed partGroups when formula changes
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            amountParts = createAmountParts(parsePartGroups(target.value), height_1);
+            amountParts = createAmountParts(parsePartGroups(target.value), height);
         });
-        amountParts = createAmountParts(parsePartGroups(input.value), height_1);
+        amountParts = createAmountParts(parsePartGroups(input.value), height);
         window.requestAnimationFrame(draw);
     }
     else {

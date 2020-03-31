@@ -19,6 +19,9 @@ let amountParts: Array<AmountPart> = []
 const partSize = 10;
 const partMargin = 2;
 
+let width: number;
+let height: number;
+
 // TODO nice colors
 const colors = [[255, 0, 0],
                 [0, 255, 0],
@@ -47,10 +50,13 @@ function draw() {
 
         // render
         amountParts.forEach((part) => {
-            ctx.clearRect(part.x, part.currentY, partSize, partSize);
+            if (part.x >= 0 && part.x < width &&
+                part.currentY >= 0 && part.currentY < height) {
+                ctx.clearRect(part.x, part.currentY, partSize, partSize);
 
-            ctx.fillStyle = part.color;
-            ctx.fillRect(part.x, part.currentY, partSize, partSize);
+                ctx.fillStyle = part.color;
+                ctx.fillRect(part.x, part.currentY, partSize, partSize);
+            }
         });
 
         // remove those in place
@@ -68,8 +74,11 @@ function parsePartGroups(input: string): Array<PartGroup> {
         const connectionAndNumberString = value.match(/([ spc]]*)?(\d+)/);
 
         if (connectionAndNumberString) {
-            // TODO big numbers (> 50k) kill the performance
-            const parsedNumber = parseInt(connectionAndNumberString[2], 10);
+            let parsedNumber = parseInt(connectionAndNumberString[2], 10);
+            if (parsedNumber > 1024) {
+                parsedNumber = 1024;
+                document.getElementById('cap-warning')!.setAttribute('style', 'display: block;');
+            }
             const continuation = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('p') !== -1 : false;
             const newRow = connectionAndNumberString[1] ? connectionAndNumberString[1].indexOf('c') !== -1 : false;
 
@@ -140,7 +149,8 @@ function start() {
         const input = <HTMLInputElement>document.getElementById('formula');
         if (input) input.value = '3p6p10 5c3c6c10 5';
 
-        const height = canvas.height;
+        width = canvas.width;
+        height = canvas.height;
 
         // TODO add only if listener doesn't already exists
         input.addEventListener('input', (ev) => {

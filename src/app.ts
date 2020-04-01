@@ -22,13 +22,29 @@ const partMargin = 2;
 let width: number;
 let height: number;
 
-// TODO nice colors
-const colors = [[255, 0, 0],
-                [0, 255, 0],
-                [0, 0, 255],
-                [255, 255, 0],
-                [0, 255, 255],
-                [255, 0, 255]]
+// Kelly's colors
+const colors = [[0, 195, 243],//original 243, 195, 0
+                [135, 86, 146],
+                [243, 132, 0],
+                [161, 202, 241],
+                [190, 0, 50],
+                [194, 178, 128],
+                [132, 132, 130],
+                [0, 136, 86],
+                [230, 143, 172],
+                [0, 103, 165],
+                [249, 147, 121],
+                [96, 78, 151],
+                [246, 166, 0],
+                [179, 68, 108],
+                [220, 211, 0],
+                [136, 45, 23],
+                [141, 182, 0],
+                [101, 69, 34],
+                [226, 88, 34],
+                [43, 61, 38],
+                [242, 243, 244],
+                [64, 64, 64]];//original 34, 34, 34
 
 interface Array<T> {
     fill(value: T): Array<T>;
@@ -126,9 +142,8 @@ function createAmountParts(partGroups: Array<PartGroup>, canvasHeight: number): 
             const startColumn = countOnRow;
             let squareStarted = false;
 
+            const colorIndex = index % maxColorIndex;
             new Array<number>(parts).fill(0).forEach((_, partIndex) => {
-                const colorIndex = index % maxColorIndex;
-
                 if (partGroup.square && partIndex % Math.ceil(Math.sqrt(parts)) === 0) {
                     if (squareStarted) {
                         row += 1;

@@ -5,13 +5,29 @@ var partSize = 10;
 var partMargin = 2;
 var width;
 var height;
-// TODO nice colors
-var colors = [[255, 0, 0],
-    [0, 255, 0],
-    [0, 0, 255],
-    [255, 255, 0],
-    [0, 255, 255],
-    [255, 0, 255]];
+// Kelly's colors
+var colors = [[0, 195, 243],
+    [135, 86, 146],
+    [243, 132, 0],
+    [161, 202, 241],
+    [190, 0, 50],
+    [194, 178, 128],
+    [132, 132, 130],
+    [0, 136, 86],
+    [230, 143, 172],
+    [0, 103, 165],
+    [249, 147, 121],
+    [96, 78, 151],
+    [246, 166, 0],
+    [179, 68, 108],
+    [220, 211, 0],
+    [136, 45, 23],
+    [141, 182, 0],
+    [101, 69, 34],
+    [226, 88, 34],
+    [43, 61, 38],
+    [242, 243, 244],
+    [64, 64, 64]]; //original 34, 34, 34
 function draw() {
     if (ctx) {
         // clean previous frame renders
@@ -94,8 +110,8 @@ function createAmountParts(partGroups, canvasHeight) {
         if (parts > 0) {
             var startColumn_1 = countOnRow;
             var squareStarted_1 = false;
+            var colorIndex_1 = index % maxColorIndex;
             new Array(parts).fill(0).forEach(function (_, partIndex) {
-                var colorIndex = index % maxColorIndex;
                 if (partGroup.square && partIndex % Math.ceil(Math.sqrt(parts)) === 0) {
                     if (squareStarted_1) {
                         row += 1;
@@ -104,9 +120,9 @@ function createAmountParts(partGroups, canvasHeight) {
                     countOnRow = startColumn_1;
                 }
                 var amountPart = {
-                    color: 'rgb(' + colors[colorIndex][0] + ', ' +
-                        colors[colorIndex][1] + ', ' +
-                        colors[colorIndex][2] + ')',
+                    color: 'rgb(' + colors[colorIndex_1][0] + ', ' +
+                        colors[colorIndex_1][1] + ', ' +
+                        colors[colorIndex_1][2] + ')',
                     x: countOnRow * (partSize + partMargin),
                     y: row * (partSize + partMargin),
                     currentY: canvasHeight + (countOnRow * row + countOnRow) * 10 + row * (partSize + partMargin)
